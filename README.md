@@ -22,7 +22,7 @@ A human-in-the-loop job search pipeline. It pulls fresh postings from public app
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/ai-job-search-automation.git
+git clone https://github.com/chimbama001/ai-job-search-automation.git
 cd ai-job-search-automation
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
