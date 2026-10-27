@@ -30,12 +30,23 @@ pip install -e ".[dev]"
 jobsearch demo          # offline demo with fictional jobs → http://127.0.0.1:8765
 ```
 
+On Windows (PowerShell):
+
+```powershell
+git clone https://github.com/chimbama001/ai-job-search-automation.git
+cd ai-job-search-automation
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1      # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -e ".[dev]"
+jobsearch demo
+```
+
 Run it for real:
 
 ```bash
 cp config.example.toml config.toml   # set your profile, skills, locations and company watchlist
 pip install -e ".[llm]"              # optional: Claude scoring
-export ANTHROPIC_API_KEY=...         # optional
+export ANTHROPIC_API_KEY=...         # optional (PowerShell: $env:ANTHROPIC_API_KEY="...")
 
 jobsearch run           # fetch, screen, score and store new postings
 jobsearch serve         # open the dashboard
