@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import html
 import re
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 
 _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
@@ -23,7 +23,11 @@ def parse_date(value: str | float | None) -> date | None:
         return None
     try:
         if isinstance(value, (int, float)):
-            return datetime.fromtimestamp(value / 1000, tz=UTC).date()
-        return datetime.fromisoformat(str(value)).astimezone(UTC).date()
+            return datetime.fromtimestamp(value / 1000, tz=timezone.utc).date()
+        return (
+            datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            .astimezone(timezone.utc)
+            .date()
+        )
     except (ValueError, OSError, OverflowError):
         return None

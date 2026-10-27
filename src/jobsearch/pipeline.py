@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import logging
-import tomllib
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from . import llm, screening
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 from .models import Job
 from .scoring import rule_score
 from .sources import REGISTRY
@@ -84,7 +88,7 @@ def screen(jobs: list[Job], cfg: Config, known: set[str], today: date, report: R
 
 
 def run(cfg: Config, store: Store, today: date | None = None, use_llm: bool = True) -> Report:
-    today = today or datetime.now(UTC).date()
+    today = today or datetime.now(timezone.utc).date()
     report = Report()
     candidates: list[Job] = []
     for ats, slugs in cfg.sources.items():

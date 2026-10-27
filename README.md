@@ -103,7 +103,7 @@ tests/           39 unit tests (parsers, screening rules, scoring, storage, LLM 
 
 ## Tech stack
 
-Python 3.11+ (standard library only for the core) · SQLite · vanilla JS dashboard · Anthropic Claude API (optional) · pytest · Ruff · GitHub Actions CI
+Python 3.10+ (standard library only for the core) · SQLite · vanilla JS dashboard · Anthropic Claude API (optional) · pytest · Ruff · GitHub Actions CI
 
 ## Roadmap
 

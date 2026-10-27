@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from .models import Job
 from .pipeline import Config, Report, screen
@@ -71,7 +71,7 @@ SAMPLES = [
 
 
 def seed(store: Store, cfg: Config) -> Report:
-    today = datetime.now(UTC).date()
+    today = datetime.now(timezone.utc).date()
     jobs = [
         Job(
             source="demo",
