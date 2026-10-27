@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: deep-teal hero band with today's 15-application goal ring and scoreboard, a pipeline funnel, then colour-coded job cards */
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --fg:#122027; --muted:#5a6c76; --line:#dce5e9;
+  --hero-a:#0a3d4a; --hero-b:#0f6a7d; --hero-fg:#ecf7f9; --hero-muted:#a9d0d8;
+  --accent:#f2a33a; --accent-ink:#3b2400; --link:#0b6e8a;
+  --c-help:#2f8fd8; --c-sys:#7a5ccc; --c-sec:#d9534a; --c-sdr:#1f9d6b;
+  --good:#1d7a46; --good-soft:#e2f3e8; --warn:#9a6200; --warn-soft:#fbefd6;
+  --f-display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1317; --surface:#141e24; --fg:#e3ecef; --muted:#90a3ad; --line:#24323a;
+  --hero-a:#07262f; --hero-b:#0b4b59; --hero-fg:#ecf7f9; --hero-muted:#8fbcc6;
+  --accent:#f5b252; --accent-ink:#2c1a00; --link:#5cc3df;
+  --c-help:#5aaeee; --c-sys:#a68bf0; --c-sec:#f07b72; --c-sdr:#4cc993;
+  --good:#5fcf8d; --good-soft:#163323; --warn:#e9b44c; --warn-soft:#3a2d12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1317; --surface:#141e24; --fg:#e3ecef; --muted:#90a3ad; --line:#24323a;
+  --hero-a:#07262f; --hero-b:#0b4b59; --hero-fg:#ecf7f9; --hero-muted:#8fbcc6;
+  --accent:#f5b252; --accent-ink:#2c1a00; --link:#5cc3df;
+  --c-help:#5aaeee; --c-sys:#a68bf0; --c-sec:#f07b72; --c-sdr:#4cc993;
+  --good:#5fcf8d; --good-soft:#163323; --warn:#e9b44c; --warn-soft:#3a2d12; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body)}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.inner{max-width:1000px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* hero */
+.hero{background:radial-gradient(120% 140% at 100% 0%,var(--hero-b) 0%,var(--hero-a) 60%);color:var(--hero-fg);padding-block:30px 34px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:auto -60px -90px auto;width:280px;height:280px;border-radius:50%;border:38px solid color-mix(in srgb,var(--accent) 18%,transparent);pointer-events:none}
+.hero .inner{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;position:relative;z-index:1}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--hero-muted);font-weight:600}
+.hero h1{font:800 clamp(28px,5vw,42px)/1.05 var(--f-display);margin:6px 0 8px;letter-spacing:-.02em;text-wrap:balance}
+.hero p{margin:0;color:var(--hero-muted);max-width:52ch}
+.score{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px}
+.score div{display:grid}
+.score b{font:600 26px/1 var(--f-display)}
+.score span{font-size:12px;color:var(--hero-muted);letter-spacing:.04em}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .track{stroke:color-mix(in srgb,var(--hero-fg) 14%,transparent)}
+.ring .prog{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
+.ring .lbl{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .lbl b{font:800 38px/1 var(--f-display)}
+.ring .lbl span{font-size:11px;color:var(--hero-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.ring.done .prog{stroke:var(--c-sdr)}
+
+/* body */
+main{padding-block:22px 48px}
+main .inner{display:grid;gap:18px}
+.funnel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;display:grid;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s,border-color .15s}
+.stage:hover{transform:translateY(-2px);border-color:var(--link)}
+.stage[aria-pressed="true"]{border-color:var(--link);box-shadow:0 0 0 1px var(--link)}
+.stage .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.stage b{font:600 24px/1 var(--f-display)}
+.stage span{font-size:12px;color:var(--muted);font-weight:600}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--link);transition:width .6s ease}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cat{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:6px 12px 6px 8px;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.cat .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.cat[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.cat em{font-style:normal;font-family:var(--f-mono);font-size:12px;opacity:.7}
+.toolbar .grow{flex:1}
+select,input[type=search]{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px}
+input[type=search]{min-width:0;flex:1 1 180px}
+.sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sub h2{margin:0;font:600 20px var(--f-display)}
+.sub span{color:var(--muted);font-size:13px}
+
+.list{display:grid;gap:12px}
+.job{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;animation:rise .45s both;transition:transform .15s,box-shadow .15s}
+.job:hover{transform:translateY(-2px);box-shadow:0 8px 24px -14px color-mix(in srgb,var(--fg) 40%,transparent)}
+@keyframes rise{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mono-av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font:800 18px var(--f-display);color:#fff;background:var(--cc)}
+.job .main{min-width:0;display:grid;gap:5px}
+.job h3{margin:0;font:600 17px/1.25 var(--f-display)}
+.job h3 a{color:inherit;text-decoration:none}
+.job h3 a:hover{color:var(--link);text-decoration:underline}
+.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:3px 12px}
+.meta b{color:var(--fg);font-weight:600}
+.why{font-size:14px;margin:2px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;align-items:center}
+.chip{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--cc) 14%,transparent);color:var(--cc)}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.pay{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--fg)}
+.side{display:grid;gap:10px;justify-items:end}
+.fit{display:flex;gap:3px;align-items:center}
+.fit i{width:14px;height:6px;border-radius:3px;background:var(--line)}
+.fit i.on{background:var(--cc)}
+.fit span{font-size:11px;color:var(--muted);margin-right:4px;text-transform:uppercase;letter-spacing:.06em}
+.btns{display:flex;gap:6px}
+button.act{font:700 13px var(--f-body);border-radius:99px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);transition:transform .12s}
+button.act:hover{transform:scale(1.04)}
+button.act.yes{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.act.go{background:var(--c-sdr);border-color:var(--c-sdr);color:#fff}
+.status-sel{border-radius:99px;font-weight:600;font-size:13px}
+.note-line{font-size:12px;color:var(--muted)}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:14px;padding:32px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:600;font-size:14px;z-index:20}
+.c-help{--cc:var(--c-help)} .c-sys{--cc:var(--c-sys)} .c-sec{--cc:var(--c-sec)} .c-sdr{--cc:var(--c-sdr)}
+.cat.c-help .dot{background:var(--c-help)} .cat.c-sys .dot{background:var(--c-sys)} .cat.c-sec .dot{background:var(--c-sec)} .cat.c-sdr .dot{background:var(--c-sdr)}
+@media (max-width:720px){.funnel{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:600px){
+  .hero .inner{grid-template-columns:1fr}
+  .ring{width:120px;height:120px;justify-self:start}
+  .job{grid-template-columns:auto 1fr}
+  .side{grid-column:1/-1;grid-auto-flow:column;justify-content:space-between;align-items:center}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="hero pad">
+  <div class="inner">
+    <div>
+      <div class="eyebrow" id="today">Today</div>
+      <h1>Job Pipeline</h1>
+      <p>Fresh IT help desk, sys admin, security analyst and SDR/BDR roles land here after every <code>jobsearch run</code>. Approve the ones you like, apply, and watch the ring fill.</p>
+      <div class="score">
+        <div><b id="s-total">0</b><span>jobs found</span></div>
+        <div><b id="s-applied">0</b><span>applied total</span></div>
+        <div><b id="s-int">0</b><span>interviews</span></div>
+        <div><b id="s-rate">–</b><span>response rate</span></div>
+      </div>
+    </div>
+    <div class="ring" id="ring" role="img" aria-label="Applications today">
+      <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="50" fill="none" stroke-width="12"/><circle class="prog" id="prog" cx="60" cy="60" r="50" fill="none" stroke-width="12" stroke-dasharray="314.16" stroke-dashoffset="314.16"/></svg>
+      <div class="lbl"><b id="r-num">0</b><span>of 15 today</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="pad">
+  <div class="inner">
+    <div class="funnel" id="funnel" role="group" aria-label="Pipeline stages"></div>
+
+    <div class="toolbar">
+      <div id="cats" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <span class="grow"></span>
+      <select id="sort" aria-label="Sort"><option value="fit">Best fit first</option><option value="new">Newest first</option></select>
+      <input type="search" id="q" placeholder="Search company, title, city">
+    </div>
+
+    <div class="sub"><h2 id="view-title">To review</h2><span id="view-count"></span></div>
+    <div class="list" id="list"><div class="empty">Loading your pipeline…</div></div>
+  </div>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const GOAL=15;
+const FUNNEL=[["new","To review"],["apply","Approved"],["applied","Applied"],["interview","Interviewing"],["offer","Offer"]];
+const ALL=[...FUNNEL,["rejected","Rejected"],["skip","Skipped"]];
+const LABEL=Object.fromEntries(ALL);
+const CATS=[["IT Help Desk","c-help"],["Sys Admin","c-sys"],["Security Analyst","c-sec"],["SDR/BDR","c-sdr"]];
+const CC=Object.fromEntries(CATS);
+let jobs=[],filter="new",cat="",firstPaint=true;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dayKey=d=>{const x=new Date(d);return isNaN(x)?"":x.toLocaleDateString("en-CA")};
+const todayKey=dayKey(Date.now());
+$("today").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2200)}
+
+function renderHero(){
+  const reached=s=>["applied","interview","offer","rejected"].includes(s);
+  const applied=jobs.filter(j=>reached(j.status)).length;
+  const ints=jobs.filter(j=>["interview","offer"].includes(j.status)).length;
+  const today=jobs.filter(j=>j.appliedAt&&dayKey(j.appliedAt)===todayKey).length;
+  $("s-total").textContent=jobs.length;$("s-applied").textContent=applied;$("s-int").textContent=ints;
+  $("s-rate").textContent=applied?Math.round(ints/applied*100)+"%":"–";
+  $("r-num").textContent=today;
+  $("prog").style.strokeDashoffset=314.16*(1-Math.min(today,GOAL)/GOAL);
+  $("ring").classList.toggle("done",today>=GOAL);
+  $("ring").setAttribute("aria-label",`${today} of ${GOAL} applications today`);
+}
+function renderFunnel(){
+  const n=k=>jobs.filter(j=>(j.status||"new")===k).length;
+  const max=Math.max(1,...FUNNEL.map(([k])=>n(k)));
+  const extra=[["all","All"],["rejected","Rejected"],["skip","Skipped"]];
+  $("funnel").innerHTML=FUNNEL.map(([k,l])=>`<button class="stage" data-s="${k}" aria-pressed="${filter===k}">
+    <div class="top"><b>${n(k)}</b><span>${l}</span></div><div class="meter"><i style="width:${n(k)/max*100}%"></i></div></button>`).join("");
+  $("cats").innerHTML=`<button class="cat" data-c="" aria-pressed="${cat===""}"><span class="dot"></span>All roles</button>`+
+    CATS.map(([c,k])=>`<button class="cat ${k}" data-c="${esc(c)}" aria-pressed="${cat===c}"><span class="dot"></span>${esc(c)} <em>${jobs.filter(j=>j.category===c).length}</em></button>`).join("")+
+    extra.map(([k,l])=>`<button class="cat" data-s="${k}" aria-pressed="${filter===k}">${l} <em>${k==="all"?jobs.length:n(k)}</em></button>`).join("");
+}
+function card(j,i){
+  const s=j.status||"new",k=CC[j.category]||"c-help",fit=Math.max(0,Math.min(5,j.fit||0));
+  const initial=esc((j.company||"?").trim()[0]||"?").toUpperCase();
+  let act;
+  if(s==="new") act=`<div class="btns"><button class="act yes" data-id="${esc(j.id)}" data-to="apply">Approve</button><button class="act" data-id="${esc(j.id)}" data-to="skip">Skip</button></div>`;
+  else if(s==="apply") act=`<div class="btns"><button class="act go" data-id="${esc(j.id)}" data-to="applied">Mark applied</button><button class="act" data-id="${esc(j.id)}" data-to="skip">Skip</button></div>`;
+  else act=`<select class="status-sel" data-id="${esc(j.id)}" aria-label="Status for ${esc(j.title)}">${ALL.map(([v,l])=>`<option value="${v}" ${v===s?"selected":""}>${l}</option>`).join("")}</select>`;
+  const auth=j.auth==="clear"?`<span class="chip good">No auth language</span>`:`<span class="chip warn" title="${esc(j.authNote)}">Read auth note</span>`;
+  const applied=j.appliedAt?`<span class="mono">applied ${esc(dayKey(j.appliedAt))}</span>`:"";
+  const age=j.posted?Math.max(0,Math.round((new Date(todayKey)-new Date(j.posted))/864e5)):null;
+  const ageChip=age===null?"":`<span class="chip ${age>21?"warn":"good"}">${age===0?"Posted today":age>21?`Posted ${age}d ago · may be stale`:`Posted ${age}d ago`}</span>`;
+  return `<article class="job ${k}" style="animation-delay:${firstPaint?Math.min(i,10)*40:0}ms">
+    <div class="mono-av" aria-hidden="true">${initial}</div>
+    <div class="main">
+      <h3>${j.url?`<a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.title)}</a>`:esc(j.title)}</h3>
+      <div class="meta"><b>${esc(j.company)}</b><span>${esc(j.location)}</span>${applied||`<span class="mono">found ${esc(dayKey(j.addedAt))}</span>`}${j.source?`<span>via ${esc(j.source)}</span>`:""}</div>
+      ${j.why?`<p class="why">${esc(j.why)}</p>`:""}
+      <div class="chips"><span class="chip">${esc(j.category)}</span>${ageChip}${j.salary?`<span class="chip pay">${esc(j.salary)}</span>`:""}${auth}</div>
+      ${j.authNote&&j.auth!=="clear"?`<div class="note-line">${esc(j.authNote)}</div>`:""}
+    </div>
+    <div class="side"><div class="fit" title="Fit ${fit} of 5"><span>Fit</span>${[1,2,3,4,5].map(n=>`<i class="${n<=fit?"on":""}"></i>`).join("")}</div>${act}</div>
+  </article>`;
+}
+function renderList(){
+  const q=$("q").value.trim().toLowerCase(),sort=$("sort").value;
+  let rows=jobs.filter(j=>(filter==="all"||(j.status||"new")===filter)&&(!cat||j.category===cat)&&(!q||[j.company,j.title,j.location].join(" ").toLowerCase().includes(q)));
+  rows.sort(sort==="fit"?(a,b)=>(b.fit||0)-(a.fit||0)||String(b.addedAt).localeCompare(String(a.addedAt)):(a,b)=>String(b.addedAt).localeCompare(String(a.addedAt)));
+  $("view-title").textContent=(filter==="all"?"All jobs":LABEL[filter])+(cat?` · ${cat}`:"");
+  $("view-count").textContent=`${rows.length} ${rows.length===1?"job":"jobs"}`;
+  if(!jobs.length){$("list").innerHTML=`<div class="empty">No jobs yet. Run <code>jobsearch run</code> to pull fresh postings.</div>`;return}
+  $("list").innerHTML=rows.length?rows.map(card).join(""):`<div class="empty">${filter==="new"?"You're all caught up. Run <code>jobsearch run</code> for more.":"Nothing here with these filters yet."}</div>`;
+  firstPaint=false;
+}
+function render(){renderHero();renderFunnel();renderList()}
+
+async function setStatus(id,to){
+  const j=jobs.find(x=>x.id===id);if(!j)return;
+  try{
+    const r=await fetch(`/api/jobs/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:to})});
+    if(!r.ok) throw new Error(r.status);
+    await load();
+    if(to==="applied"){const n=jobs.filter(x=>x.appliedAt&&dayKey(x.appliedAt)===todayKey).length;toast(n>=GOAL?`Goal hit: ${n} applications today!`:`Applied. ${n} of ${GOAL} today`)}
+    else toast(to==="apply"?"Approved. Time to tailor your resume.":`Moved to ${LABEL[to]}`);
+  }catch(e){toast("That change didn't save. Is the jobsearch server still running?")}
+}
+document.addEventListener("click",e=>{
+  const st=e.target.closest("[data-s]");if(st&&!st.dataset.id){filter=st.dataset.s;render();return}
+  const c=e.target.closest("[data-c]");if(c){cat=c.dataset.c;render();return}
+  const b=e.target.closest("button.act");if(b)setStatus(b.dataset.id,b.dataset.to);
+});
+document.addEventListener("change",e=>{
+  if(e.target.matches("select[data-id]"))setStatus(e.target.dataset.id,e.target.value);
+  else if(e.target.id==="sort")renderList();
+});
+$("q").addEventListener("input",renderList);
+render();
+
+const FLAG={citizenship:"U.S. citizenship",clearance:"security clearance",no_sponsorship:"no visa sponsorship",itar:"ITAR / export control"};
+async function load(){
+  const rows=await (await fetch("/api/jobs")).json();
+  jobs=rows.map(r=>({...r,addedAt:r.added_at,appliedAt:r.applied_at,
+    auth:r.auth_flags.length?"check":"clear",
+    authNote:r.auth_flags.length?"Mentions "+r.auth_flags.map(f=>FLAG[f]||f).join(", "):""}));
+  render();
+}
+load().catch(()=>{$("list").innerHTML=`<div class="empty">Couldn't reach the jobsearch server. Start it with <code>jobsearch serve</code>.</div>`});
+setInterval(()=>load().catch(()=>{}),60000);
+</script>
+
+</html>

@@ -1,0 +1,14 @@
+# local config and data (may contain personal info)
+config.toml
+.env
+data/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/

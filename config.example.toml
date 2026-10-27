@@ -1,0 +1,35 @@
+# Copy to config.toml and edit. config.toml is git-ignored.
+
+[search]
+# Postings older than this (by publish/repost date) are dropped.
+max_age_days = 21
+# Most new jobs added per run (matches a 15-applications-per-day cap).
+daily_cap = 15
+# Locations to prioritize. Jobs elsewhere are still kept when allow_anywhere = true.
+locations = ["Boston", "Massachusetts", "Remote", "Atlanta", "Florida", "New York", "Texas"]
+allow_anywhere = true
+# true  = flag work-authorization / clearance language but keep the job
+# false = drop jobs that contain it
+keep_auth_flagged = true
+
+[profile]
+# Used for rule-based fit scoring and (optionally) the Claude summary.
+summary = """
+Recent B.S. Cybersecurity graduate with ~10 months of SDR experience prospecting federal
+agencies for cybersecurity vendors, plus remote L1/L2 IT support (Active Directory, M365).
+Azure AZ-900. Projects: Azure secure file system aligned to NIST 800-171/CMMC L2, and an
+AI-agent security gateway with human approval.
+"""
+skills = [
+  "salesforce", "hubspot", "sales navigator", "cold calling", "outbound", "prospecting",
+  "active directory", "microsoft 365", "m365", "azure", "ticketing", "troubleshooting",
+  "nist", "cmmc", "siem", "cybersecurity", "security", "saas", "crm", "linux", "windows",
+]
+
+# Companies to watch, by applicant tracking system. The slug is the company's
+# board name in the public job-board URL, e.g. boards.greenhouse.io/<slug>,
+# jobs.lever.co/<slug>, jobs.ashbyhq.com/<slug>. Check each slug before relying on it.
+[sources]
+greenhouse = ["datadog", "gitlab", "cloudflare"]
+lever = []
+ashby = ["evenup"]
